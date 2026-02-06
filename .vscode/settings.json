@@ -1,0 +1,15 @@
+{ 
+    "actionButtons": {
+        "defaultColor": "white",
+        "reloadButton": "⟳",
+        "loadNpmCommands": false,
+        "commands": [
+            {
+                "name": "$(tools) $(triangle-right) Build and Run",
+                "color": "lime",
+                "singleInstance": true,
+                "command": "bash build.sh"
+            }
+        ]
+    }
+}
