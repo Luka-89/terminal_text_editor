@@ -1,6 +1,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
 
 struct termios orig_termios;
 
@@ -16,18 +18,20 @@ void enableRawMode() {
 
     struct termios raw = orig_termios;
 
-    //c_lflag - 0s and 1s representing local controller flags
-    raw.c_lflag &= ~(ECHO);
+    raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);
+    raw.c_iflag &= ~(IXON);
+    raw.c_oflag &= ~(OPOST);
+
 
     //sets the attributes from raw
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-
 int main() {
     enableRawMode();
     char c;
     while(read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
+        printf("%d - %c\r\n", c, c);
     }
     disableRawMode();
     return 0;
