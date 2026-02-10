@@ -4,6 +4,11 @@
 #include <stdio.h>
 
 /*** defines ***/
+void die(const char* s);
+void enableRawMode();
+char readKey();
+void editorRefreshScreen();
+void processKeypress();
 
 struct termios orig_termios;
 
@@ -12,6 +17,7 @@ struct termios orig_termios;
 void die(const char* s) {
     perror(s);
     exit(1);
+    editorRefreshScreen();
 }
 
 void disableRawMode() {
@@ -47,6 +53,11 @@ char readKey() {
     return c;
 }
 
+/*** output ***/
+void editorRefreshScreen() {
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+}
+
 /*** input ***/
 
 void processKeypress() {
@@ -66,7 +77,7 @@ void processKeypress() {
     case 127:
         write(STDOUT_FILENO, "\b \b", 3);
         break;
-        
+
     default:
         write(STDOUT_FILENO, &c, 1);
         break;
@@ -83,6 +94,9 @@ int main() {
     while(1) {
         processKeypress();
     }
+
+    editorRefreshScreen();
+    disableRawMode();
 
     return 0;
 }
