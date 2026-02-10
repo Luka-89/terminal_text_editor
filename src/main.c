@@ -15,9 +15,9 @@ struct termios orig_termios;
 /*** terminal ***/
 
 void die(const char* s) {
+    editorRefreshScreen();
     perror(s);
     exit(1);
-    editorRefreshScreen();
 }
 
 void disableRawMode() {
@@ -29,6 +29,7 @@ void enableRawMode() {
     //puts the attributes into struct original termios
     if(tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr at enableRawMode()");
     atexit(disableRawMode);
+    atexit(editorRefreshScreen);
 
     struct termios raw = orig_termios;
 
@@ -56,6 +57,7 @@ char readKey() {
 /*** output ***/
 void editorRefreshScreen() {
     write(STDOUT_FILENO, "\x1b[2J", 4);
+    write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
 /*** input ***/
@@ -94,9 +96,6 @@ int main() {
     while(1) {
         processKeypress();
     }
-
-    editorRefreshScreen();
-    disableRawMode();
 
     return 0;
 }
