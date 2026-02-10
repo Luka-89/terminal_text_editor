@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
 
 struct termios orig_termios;
 
@@ -25,7 +24,7 @@ void enableRawMode() {
 
     //turns off a bunch of default flags as well as echo and canonical mode
     raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);
-    raw.c_iflag &= ~(IXON);
+    raw.c_iflag &= ~(IXON | ICRNL);
     raw.c_oflag &= ~(OPOST);
 
     raw.c_cc[VMIN] = 1;
