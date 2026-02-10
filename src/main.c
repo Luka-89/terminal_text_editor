@@ -29,7 +29,6 @@ void enableRawMode() {
     //puts the attributes into struct original termios
     if(tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr at enableRawMode()");
     atexit(disableRawMode);
-    atexit(editorRefreshScreen);
 
     struct termios raw = orig_termios;
 
@@ -67,9 +66,10 @@ void processKeypress() {
     switch (c) {
     //ctrl q
     case 17:
+        editorRefreshScreen();
         exit(0);
         break;
-
+        
     //enter
     case 13:
         write(STDOUT_FILENO, "\r\n", 2);
