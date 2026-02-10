@@ -3,7 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/*** defines ***/
+
 struct termios orig_termios;
+
+/*** terminal ***/
 
 void die(const char* s) {
     perror(s);
@@ -34,20 +38,51 @@ void enableRawMode() {
     if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr at enableRawMode()");
 }
 
+char readKey() {
+    int nread;
+    char c;
+    while((nread = read(STDIN_FILENO, &c, 1)) != 1) {
+        if(nread == -1) die("read at readKey()");
+    }
+    return c;
+}
+
+/*** input ***/
+
+void processKeypress() {
+    char c = readKey();
+    switch (c) {
+    //ctrl q
+    case 17:
+        exit(0);
+        break;
+
+    //enter
+    case 13:
+        write(STDOUT_FILENO, "\r\n", 2);
+        break;
+
+    //backspace
+    case 127:
+        write(STDOUT_FILENO, "\b \b", 3);
+        break;
+        
+    default:
+        write(STDOUT_FILENO, &c, 1);
+        break;
+    }
+    
+}
+
+
+/*** init ***/
+
 int main() {
     enableRawMode();
-    char c;
-    const char* msg = "debug";
 
     while(1) {
-        if(read(STDIN_FILENO, &c, 1) == -1) die("read");
-        if(c == 'q') break;
-        else if(c == '\n')write(STDOUT_FILENO, "\r\n", 2);
-        else if(c == 127 || c == 8) write(STDOUT_FILENO, "\b \b", 3);
-        else write(STDOUT_FILENO, &c, 1);
+        processKeypress();
     }
-
-    disableRawMode();
 
     return 0;
 }
