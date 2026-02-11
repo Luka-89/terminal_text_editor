@@ -105,12 +105,16 @@ void processKeypress() {
     
 }
 
+void initEditor() {
+    enableRawMode();
+    getTerminalSizeIOCTL(&E.width, &E.height);
+}
 
 /*** init ***/
 
 int main() {
-    enableRawMode();
-    getTerminalSizeIOCTL(&E.width, &E.height);
+    initEditor();
+    
     while(1) {
         processKeypress();
     }
