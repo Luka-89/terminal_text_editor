@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 
 /*** defines ***/
 void die(const char* s);
@@ -9,6 +10,7 @@ void enableRawMode();
 char readKey();
 void editorRefreshScreen();
 void processKeypress();
+void getTerminalSizeIOCTL(int* width, int* heigth);
 
 struct termios orig_termios;
 
@@ -53,7 +55,17 @@ char readKey() {
     return c;
 }
 
+void getTerminalSizeIOCTL(int* width, int* height) {
+    struct winsize w = {0};
+    if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0 && w.ws_row > 0){
+        *width = w.ws_col;
+        *height = w.ws_row;
+    }
+    else die("ioctl at getTerminalSizeIOCTL");
+}
+
 /*** output ***/
+
 void editorRefreshScreen() {
     write(STDOUT_FILENO, "\x1b[2J", 4);
     write(STDOUT_FILENO, "\x1b[H", 3);
@@ -92,7 +104,11 @@ void processKeypress() {
 
 int main() {
     enableRawMode();
-
+    int width = -1;
+    int height = -1;
+    getTerminalSizeIOCTL(&width, &height);
+    printf("width - %d height - %d", width, height);
+    fflush(stdout);
     while(1) {
         processKeypress();
     }
