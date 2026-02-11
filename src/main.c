@@ -12,7 +12,13 @@ void editorRefreshScreen();
 void processKeypress();
 void getTerminalSizeIOCTL(int* width, int* heigth);
 
-struct termios orig_termios;
+struct editorConfig {
+    struct termios orig;
+    int width;
+    int height;
+};
+
+struct editorConfig E;
 
 /*** terminal ***/
 
@@ -24,15 +30,15 @@ void die(const char* s) {
 
 void disableRawMode() {
     //sets the attributes back to the original
-    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1) die("tcsetattr at disableRawMode()");
+    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig) == -1) die("tcsetattr at disableRawMode()");
 }
 
 void enableRawMode() {
     //puts the attributes into struct original termios
-    if(tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr at enableRawMode()");
+    if(tcgetattr(STDIN_FILENO, &E.orig) == -1) die("tcgetattr at enableRawMode()");
     atexit(disableRawMode);
 
-    struct termios raw = orig_termios;
+    struct termios raw = E.orig;
 
     //turns off a bunch of default flags as well as echo and canonical mode
     raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);
@@ -104,11 +110,7 @@ void processKeypress() {
 
 int main() {
     enableRawMode();
-    int width = -1;
-    int height = -1;
-    getTerminalSizeIOCTL(&width, &height);
-    printf("width - %d height - %d", width, height);
-    fflush(stdout);
+    getTerminalSizeIOCTL(&E.width, &E.height);
     while(1) {
         processKeypress();
     }
