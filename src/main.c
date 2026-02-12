@@ -12,6 +12,7 @@ void editorRefreshScreen();
 void processKeypress();
 void getTerminalSizeIOCTL(int* width, int* heigth);
 struct dString initdString();
+void freedString(struct dString* str);
 
 struct editorConfig {
     struct termios orig;
@@ -140,7 +141,7 @@ void processKeypress() {
             char c3;
             read(STDIN_FILENO, &c1, 1);
             read(STDIN_FILENO, &c2, 1);
-            printf("%d   -   %d \r\n%c   -   %c\r\n", c1, c2, c1, c2);
+            printf("%d   -   %d \r\n%c   -   %c\r\n", c1, c2, c1, c2);  
             fflush(stdout);
         }
         break;
