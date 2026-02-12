@@ -98,8 +98,24 @@ void processKeypress() {
         write(STDOUT_FILENO, "\b \b", 3);
         break;
 
+    //arrow keys
+    //up - \x1b[A    down - \x1b[B
+    //right - \x1b[C left - \x1b[D:
+    case '\x1b':
+        char c1; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
+        char c2; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
+        
     default:
         write(STDOUT_FILENO, &c, 1);
+        if(c == '\x1b') {
+            char c1;
+            char c2;
+            char c3;
+            read(STDIN_FILENO, &c1, 1);
+            read(STDIN_FILENO, &c2, 1);
+            printf("%d   -   %d \r\n%c   -   %c\r\n", c1, c2, c1, c2);
+            fflush(stdout);
+        }
         break;
     }
     
