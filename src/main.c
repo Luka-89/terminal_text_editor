@@ -11,6 +11,7 @@ char readKey();
 void editorRefreshScreen();
 void processKeypress();
 void getTerminalSizeIOCTL(int* width, int* heigth);
+struct dString initdString();
 
 struct editorConfig {
     struct termios orig;
@@ -19,6 +20,32 @@ struct editorConfig {
 };
 
 struct editorConfig E;
+
+/*** buffer ***/
+
+//dynamic String
+struct dString {
+    int length;
+    int maxLenth;
+    char* data;
+};
+
+struct dString initdString() {
+    struct dString str;
+    str.length = 0;
+    str.maxLenth = 256;
+    str.data = (char*) malloc(256 * sizeof(char));
+    if(str.data == NULL) die("malloc failed at initdString");
+
+    return str;
+}
+
+void freedString(struct dString* str) {
+    str->length = 0;
+    str->maxLenth = 0;
+    free(str->data);
+}
+
 
 /*** terminal ***/
 
@@ -104,7 +131,7 @@ void processKeypress() {
     case '\x1b':
         char c1; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
         char c2; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
-        
+
     default:
         write(STDOUT_FILENO, &c, 1);
         if(c == '\x1b') {
