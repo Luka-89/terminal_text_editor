@@ -141,7 +141,25 @@ void processKeypress() {
     //right - \x1b[C left - \x1b[D:
     case '\x1b':
         char c1; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
-        char c2; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
+        char c2; if(read(STDIN_FILENO, &c2, 1) != 1) die("read in processKeypress escape sequences");
+        //printf("%c\r\n", c1);
+        //printf("%c\r\n", c2);
+        //fflush(stdout);
+        if(c1 != '[') break;
+        switch(c2){
+        case 'A':
+            write(STDOUT_FILENO, "\x1b[1A", 4);
+            break;
+        case 'B':
+            write(STDOUT_FILENO, "\x1b[1B", 4);
+            break;
+        case 'C':
+            write(STDOUT_FILENO, "\x1b[1C", 4);
+            break;
+        case 'D':
+            write(STDOUT_FILENO, "\x1b[1D", 4);
+            break;
+        }
         break;
 
     default:
