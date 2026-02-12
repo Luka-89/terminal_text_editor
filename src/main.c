@@ -27,14 +27,14 @@ struct editorConfig E;
 //dynamic String
 struct dString {
     int length;
-    int maxLenth;
+    int maxLength;
     char* data;
 };
 
 struct dString initdString() {
     struct dString str;
     str.length = 0;
-    str.maxLenth = 256;
+    str.maxLength = 256;
     str.data = (char*) malloc(256 * sizeof(char));
     if(str.data == NULL) die("malloc failed at initdString");
 
@@ -43,8 +43,18 @@ struct dString initdString() {
 
 void freedString(struct dString* str) {
     str->length = 0;
-    str->maxLenth = 0;
+    str->maxLength = 0;
     free(str->data);
+}
+
+struct dString dStringPush(struct dString* str, char c) {
+    if(str->length == str->maxLength) {
+        char* new = (char*) realloc(str, str->maxLength * 2);
+        if(new = NULL) die("realloc failed at dStringPush");
+        str->maxLength *= 2;
+    }
+    *(str->data + str->length) = c;
+    str->length++;
 }
 
 
@@ -74,7 +84,7 @@ void enableRawMode() {
     raw.c_oflag &= ~(OPOST);
 
     raw.c_cc[VMIN] = 1;
-    raw.c_cc[VTIME] = 1;
+    raw.c_cc[VTIME] = 0;
 
     //sets the attributes from raw
     if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr at enableRawMode()");
@@ -132,18 +142,10 @@ void processKeypress() {
     case '\x1b':
         char c1; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
         char c2; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
+        break;
 
     default:
         write(STDOUT_FILENO, &c, 1);
-        if(c == '\x1b') {
-            char c1;
-            char c2;
-            char c3;
-            read(STDIN_FILENO, &c1, 1);
-            read(STDIN_FILENO, &c2, 1);
-            printf("%d   -   %d \r\n%c   -   %c\r\n", c1, c2, c1, c2);  
-            fflush(stdout);
-        }
         break;
     }
     
