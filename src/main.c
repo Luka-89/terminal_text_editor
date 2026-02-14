@@ -73,7 +73,7 @@ void dStringInsertAt(dString* str, char c, int pos) {
         die("dStringInsertAt called for illegal index");
     }
     if(str->length == str->maxLength) dStringExtend(str);
-    for(int i = pos + 1; i <= str->length; i++) {
+    for(int i = str->length; i > pos; i--) {
         str->data[i] = str->data[i - 1];
     }
     str->data[pos] = c;
