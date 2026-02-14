@@ -134,7 +134,12 @@ void getTerminalSizeIOCTL(int* width, int* height) {
 /*** output ***/
 
 void editorRefreshScreen() {
-    write(STDOUT_FILENO, "\x1b[2J", 4);
+    write(STDOUT_FILENO, "\x1b[H", 3);
+    for(int i = 0; i < E.height; i++) {
+        for(int j = 0; j < E.width; j++) {
+            write(STDOUT_FILENO, " ", 1);
+        }
+    }
     write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
@@ -195,6 +200,8 @@ void processKeypress() {
 void initEditor() {
     enableRawMode();
     getTerminalSizeIOCTL(&E.width, &E.height);
+    for(int i = 0; i < E.height; i++) write(STDOUT_FILENO, "\r\n", 2);
+    write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
 int main() {
@@ -204,5 +211,6 @@ int main() {
         processKeypress();
     }
 
+    editorRefreshScreen();
     return 0;
 }
