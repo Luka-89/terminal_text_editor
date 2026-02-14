@@ -5,14 +5,13 @@
 #include <sys/ioctl.h>
 
 /*** defines ***/
-void die(const char* s);
-void enableRawMode();
-char readKey();
-void editorRefreshScreen();
-void processKeypress();
-void getTerminalSizeIOCTL(int* width, int* heigth);
-struct dString initdString();
-void freedString(struct dString* str);
+
+//dynamic String
+typedef struct {
+    int length;
+    int maxLength;
+    char* data;
+} dString;
 
 struct editorConfig {
     struct termios orig;
@@ -20,40 +19,64 @@ struct editorConfig {
     int height;
 };
 
+void die(const char* s);
+void enableRawMode();
+char readKey();
+void editorRefreshScreen();
+void processKeypress();
+void getTerminalSizeIOCTL(int* width, int* heigth);
+void dStringInit(dString* str);
+void dStringFree(dString* str);
+void dStringPush(dString* str, char c);
+void dStringExtend(dString* str);
+void dStringInsertAt(dString* str, char c, int pos);
+
 struct editorConfig E;
 
 /*** buffer ***/
 
-//dynamic String
-struct dString {
-    int length;
-    int maxLength;
-    char* data;
-};
-
-struct dString initdString() {
-    struct dString str;
-    str.length = 0;
-    str.maxLength = 256;
-    str.data = (char*) malloc(256 * sizeof(char));
-    if(str.data == NULL) die("malloc failed at initdString");
-
-    return str;
+void dStringInit(dString* str) {
+    str->length = 0;
+    str->maxLength = 64;
+    char* new = (char*) malloc(str->maxLength * sizeof(char));
+    if(new == NULL) die("malloc failed at dStringInit");
+    str->data = new;
 }
 
-void freedString(struct dString* str) {
+void dStringFree(dString* str) {
     str->length = 0;
     str->maxLength = 0;
     free(str->data);
+    str->data = NULL;
 }
 
-struct dString dStringPush(struct dString* str, char c) {
-    if(str->length == str->maxLength) {
-        char* new = (char*) realloc(str, str->maxLength * 2);
-        if(new = NULL) die("realloc failed at dStringPush");
-        str->maxLength *= 2;
+void dStringPush(dString* str, char c) {
+    if(str->length == str->maxLength) dStringExtend(str);
+    str->data[str->length] = c;
+    str->length++;
+}
+
+void dStringExtend(dString* str) {
+    char* new = (char*) realloc(str->data, str->maxLength * 2 * sizeof(char));
+    if(new == NULL) {
+        dStringFree(str);
+        die("realloc failed at dStringExtend");
     }
-    *(str->data + str->length) = c;
+    str->data = new;
+    str->maxLength *= 2;
+}
+
+//0-indexed
+void dStringInsertAt(dString* str, char c, int pos) {
+    if(pos < 0 || pos >= str->length) {
+        dStringFree(str);
+        die("dStringInsertAt called for illegal index");
+    }
+    if(str->length == str->maxLength) dStringExtend(str);
+    for(int i = pos + 1; i <= str->length; i++) {
+        str->data[i] = str->data[i - 1];
+    }
+    str->data[pos] = c;
     str->length++;
 }
 
@@ -142,9 +165,7 @@ void processKeypress() {
     case '\x1b':
         char c1; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
         char c2; if(read(STDIN_FILENO, &c2, 1) != 1) die("read in processKeypress escape sequences");
-        //printf("%c\r\n", c1);
-        //printf("%c\r\n", c2);
-        //fflush(stdout);
+
         if(c1 != '[') break;
         switch(c2){
         case 'A':
@@ -169,12 +190,12 @@ void processKeypress() {
     
 }
 
+/*** init ***/
+
 void initEditor() {
     enableRawMode();
     getTerminalSizeIOCTL(&E.width, &E.height);
 }
-
-/*** init ***/
 
 int main() {
     initEditor();
