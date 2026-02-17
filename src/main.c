@@ -160,12 +160,14 @@ void processKeypress() {
         
     //enter
     case 13:
-        write(STDOUT_FILENO, "\r\n", 2);
+        // write(STDOUT_FILENO, "\r\n", 2);
+        E.y++;
         break;
 
     //backspace
     case 127:
-        write(STDOUT_FILENO, "\b \b", 3);
+        // write(STDOUT_FILENO, "\b \b", 3);
+        //need to implement pop first
         break;
 
     //arrow keys
@@ -190,10 +192,13 @@ void processKeypress() {
             write(STDOUT_FILENO, "\x1b[1D", 4);
             break;
         }
+        //to be implemented with buffer
         break;
 
     default:
-        write(STDOUT_FILENO, &c, 1);
+        // write(STDOUT_FILENO, &c, 1);
+        dStringPush(buffer[E.y], c);
+        E.x++;
         break;
     }
 }
