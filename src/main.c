@@ -196,7 +196,11 @@ void processKeypress() {
         write(STDOUT_FILENO, &c, 1);
         break;
     }
-    
+}
+
+void placeCursor() {
+    for(int i = 0; i < E.y; i++) write(STDOUT_FILENO, "\x1b[1B", 4);
+    for(int i = 0; i < E.x; i++) write(STDOUT_FILENO, "\x1b[1C", 4);
 }
 
 /*** init ***/
