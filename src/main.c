@@ -17,6 +17,8 @@ struct editorConfig {
     struct termios orig;
     int width;
     int height;
+    int x;
+    int y;
 };
 
 void die(const char* s);
@@ -32,6 +34,8 @@ void dStringExtend(dString* str);
 void dStringInsertAt(dString* str, char c, int pos);
 
 struct editorConfig E;
+
+dString** buffer;
 
 /*** buffer ***/
 
@@ -200,8 +204,17 @@ void processKeypress() {
 void initEditor() {
     enableRawMode();
     getTerminalSizeIOCTL(&E.width, &E.height);
+    E.x = 0;
+    E.y = 0;
     for(int i = 0; i < E.height; i++) write(STDOUT_FILENO, "\r\n", 2);
     write(STDOUT_FILENO, "\x1b[H", 3);
+
+    buffer = malloc(E.height * sizeof(dString*));
+    for(int i = 0; i < E.height; i++) {
+        dString line;
+        dStringInit(&line);
+        buffer[i] = &line;
+    }
 }
 
 int main() {
