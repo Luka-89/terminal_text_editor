@@ -32,6 +32,8 @@ void dStringFree(dString* str);
 void dStringPush(dString* str, char c);
 void dStringExtend(dString* str);
 void dStringInsertAt(dString* str, char c, int pos);
+void placeCursor();
+void renderScreen();
 
 struct editorConfig E;
 
@@ -145,6 +147,7 @@ void editorRefreshScreen() {
         }
     }
     write(STDOUT_FILENO, "\x1b[H", 3);
+    placeCursor();
 }
 
 /*** input ***/
@@ -197,7 +200,20 @@ void processKeypress() {
 
     default:
         // write(STDOUT_FILENO, &c, 1);
-        dStringPush(buffer[E.y], c);
+        //THIS LINE BELOW MAKES A SEGMENTATION FAULT;
+        //dStringPush(buffer[E.y], c);
+        //It can access buffer[E.y] and buffer[E.y]->data[0]
+        //buffer[E.y]->data[0] does not have expected value(� isntead of m)
+        // printf("%c\r\n", ((buffer[0])->data)[0]);
+        // fflush(stdout);
+        // when thats called in main it works as expected
+        printf("%p\r\n", buffer);
+        printf("%c\r\n", ((buffer[0])->data)[0]);
+        // dStringPush(buffer[0], 'n');
+        // printf("%c\r\n", ((buffer[0])->data)[1]);
+        fflush(stdout);
+
+        //CONCLUSION: dStringPush causes segmentation fault and someting weird is going on with the buffer
         E.x++;
         break;
     }
@@ -208,6 +224,14 @@ void placeCursor() {
     for(int i = 0; i < E.x; i++) write(STDOUT_FILENO, "\x1b[1C", 4);
 }
 
+void renderScreen() {
+    for(int i = 0; i < E.height; i++) {
+        for(int j = 0; j < buffer[i]->length; j++) {
+            write(STDOUT_FILENO, &((buffer[i]->data)[j]), 1);
+        }
+        write(STDOUT_FILENO, "\r\n", 2);
+    }
+}
 /*** init ***/
 
 void initEditor() {
@@ -228,9 +252,23 @@ void initEditor() {
 
 int main() {
     initEditor();
+    dStringPush(buffer[E.y], 'm');
+    //((buffer[0])->data)[0] = 'M';
+    printf("%p\r\n", buffer);
+    printf("%c\r\n", ((buffer[E.y])->data)[0]);
+    fflush(stdout);
     
     while(1) {
         processKeypress();
+        //buffer[0][0] has different values for each scope: 
+        //in main before while it is normal at m as it was set
+        //then in process keypress it is H
+        //after processKeypress finishes its call inside the while loop it has value �
+        //only printf and fflush were called
+        printf("%p\r\n", buffer);
+        printf("%c\r\n", ((buffer[0])->data)[0]);
+        // editorRefreshScreen();
+        // renderScreen();
     }
 
     editorRefreshScreen();
