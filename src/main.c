@@ -137,19 +137,6 @@ void getTerminalSizeIOCTL(int* width, int* height) {
     else die("ioctl at getTerminalSizeIOCTL");
 }
 
-/*** output ***/
-
-void editorRefreshScreen() {
-    write(STDOUT_FILENO, "\x1b[H", 3);
-    for(int i = 0; i < E.height; i++) {
-        for(int j = 0; j < E.width; j++) {
-            write(STDOUT_FILENO, " ", 1);
-        }
-    }
-    write(STDOUT_FILENO, "\x1b[H", 3);
-    placeCursor();
-}
-
 /*** input ***/
 
 void processKeypress() {
@@ -163,13 +150,14 @@ void processKeypress() {
         
     //enter
     case 13:
-        // write(STDOUT_FILENO, "\r\n", 2);
         E.y++;
+        //TO DO - insert new line here
+        E.x = 0;
         break;
 
     //backspace
     case 127:
-        // write(STDOUT_FILENO, "\b \b", 3);
+        // TO DO
         //need to implement pop first
         break;
 
@@ -199,25 +187,25 @@ void processKeypress() {
         break;
 
     default:
-        // write(STDOUT_FILENO, &c, 1);
-        //THIS LINE BELOW MAKES A SEGMENTATION FAULT;
-        //dStringPush(buffer[E.y], c);
-        //It can access buffer[E.y] and buffer[E.y]->data[0]
-        //buffer[E.y]->data[0] does not have expected value(� isntead of m)
-        // printf("%c\r\n", ((buffer[0])->data)[0]);
-        // fflush(stdout);
-        // when thats called in main it works as expected
-        printf("%p\r\n", buffer);
-        printf("%c\r\n", ((buffer[0])->data)[0]);
-        // dStringPush(buffer[0], 'n');
-        // printf("%c\r\n", ((buffer[0])->data)[1]);
-        fflush(stdout);
-
-        //CONCLUSION: dStringPush causes segmentation fault and someting weird is going on with the buffer
+        //TO DO: make it work by inserting and not pushing to the end
+        dStringPush(buffer[E.y], c);
         E.x++;
         break;
     }
 }
+
+/*** output ***/
+
+void editorRefreshScreen() {
+    write(STDOUT_FILENO, "\x1b[H", 3);
+    for(int i = 0; i < E.height; i++) {
+        for(int j = 0; j < E.width; j++) {
+            write(STDOUT_FILENO, " ", 1);
+        }
+    }
+    write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
 
 void placeCursor() {
     for(int i = 0; i < E.y; i++) write(STDOUT_FILENO, "\x1b[1B", 4);
@@ -225,12 +213,15 @@ void placeCursor() {
 }
 
 void renderScreen() {
-    for(int i = 0; i < E.height; i++) {
+    write(STDOUT_FILENO, "\x1b[H", 3);
+    for(int i = 0; i < E.height - 1; i++) {
         for(int j = 0; j < buffer[i]->length; j++) {
             write(STDOUT_FILENO, &((buffer[i]->data)[j]), 1);
         }
         write(STDOUT_FILENO, "\r\n", 2);
     }
+    write(STDOUT_FILENO, "\x1b[H", 3);
+    placeCursor();
 }
 /*** init ***/
 
@@ -244,31 +235,24 @@ void initEditor() {
 
     buffer = malloc(E.height * sizeof(dString*));
     for(int i = 0; i < E.height; i++) {
-        dString line;
-        dStringInit(&line);
-        buffer[i] = &line;
+        // dString line;
+        // dStringInit(&line);
+        // buffer[i] = &line;
+
+        buffer[i] = malloc(sizeof(dString));
+        dStringInit(buffer[i]);
     }
 }
 
 int main() {
     initEditor();
-    dStringPush(buffer[E.y], 'm');
-    //((buffer[0])->data)[0] = 'M';
-    printf("%p\r\n", buffer);
-    printf("%c\r\n", ((buffer[E.y])->data)[0]);
-    fflush(stdout);
     
     while(1) {
         processKeypress();
-        //buffer[0][0] has different values for each scope: 
-        //in main before while it is normal at m as it was set
-        //then in process keypress it is H
-        //after processKeypress finishes its call inside the while loop it has value �
-        //only printf and fflush were called
-        printf("%p\r\n", buffer);
-        printf("%c\r\n", ((buffer[0])->data)[0]);
-        // editorRefreshScreen();
-        // renderScreen();
+        //TO DO function that turns off cursor visibility
+        editorRefreshScreen();
+        renderScreen();
+        //TO DO function that turns on cursor visibility
     }
 
     editorRefreshScreen();
