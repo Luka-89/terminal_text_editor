@@ -31,7 +31,9 @@ void dStringInit(dString* str);
 void dStringFree(dString* str);
 void dStringPush(dString* str, char c);
 void dStringExtend(dString* str);
+void dStringShrink(dString* str);
 void dStringInsertAt(dString* str, char c, int pos);
+void dStringDeleteAt(dString* str, int pos);
 void placeCursor();
 void renderScreen();
 
@@ -72,7 +74,6 @@ void dStringExtend(dString* str) {
     str->maxLength *= 2;
 }
 
-//0-indexed
 void dStringShrink(dString* str) {
     char* new = (char*) realloc(str->data, (str->maxLength / 2) * sizeof(char));
     if(new == NULL) {
@@ -107,6 +108,7 @@ void dStringInsertAt(dString* str, char c, int pos) {
     str->length++;
 }
 
+//0-indexed
 void dStringDeleteAt(dString* str, int pos) {
     if(pos < 0 || pos >= str->length) return;
     for(int i = pos; i < str->length - 1; i++) {
@@ -242,7 +244,6 @@ void editorRefreshScreen() {
     write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
-
 void placeCursor() {
     int offsetY = (E.y >= E.height) ? E.y - E.height + 1 : 0;
     int offsetX = (E.x >= E.width) ? E.x - E.width + 1 : 0;
@@ -251,16 +252,10 @@ void placeCursor() {
 }
 
 void renderScreen() {
-    //TO DO: make screen size dynamic
     getTerminalSizeIOCTL(&E.width, &E.height);
     int offsetY = (E.y >= E.height) ? E.y - E.height + 1 : 0;
     int offsetX = (E.x >= E.width) ? E.x - E.width + 1 : 0;
-    // dStringPush(buffer[1], offsetX + 48);
 
-
-    // BUG: After having a positive x offset and moving back to the normal so that offset is 0
-    //      it writes the line correctly but it is written above the viewable area and the 
-    //      unwanted part of the line is written just below it as the first visible line
     write(STDOUT_FILENO, "\x1b[H", 3);
     for(int i = offsetY; i < E.height - 1 + offsetY; i++) {
         //TO DO: insert new lines if i is bigger than buffer length
