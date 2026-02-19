@@ -232,6 +232,7 @@ void processKeypress() {
 /*** output ***/
 
 void editorRefreshScreen() {
+    getTerminalSizeIOCTL(&E.width, &E.height);
     write(STDOUT_FILENO, "\x1b[H", 3);
     for(int i = 0; i < E.height; i++) {
         for(int j = 0; j < E.width; j++) {
@@ -251,13 +252,19 @@ void placeCursor() {
 
 void renderScreen() {
     //TO DO: make screen size dynamic
+    getTerminalSizeIOCTL(&E.width, &E.height);
     int offsetY = (E.y >= E.height) ? E.y - E.height + 1 : 0;
     int offsetX = (E.x >= E.width) ? E.x - E.width + 1 : 0;
+    // dStringPush(buffer[1], offsetX + 48);
 
+
+    // BUG: After having a positive x offset and moving back to the normal so that offset is 0
+    //      it writes the line correctly but it is written above the viewable area and the 
+    //      unwanted part of the line is written just below it as the first visible line
     write(STDOUT_FILENO, "\x1b[H", 3);
     for(int i = offsetY; i < E.height - 1 + offsetY; i++) {
         //TO DO: insert new lines if i is bigger than buffer length
-        for(int j = offsetX; j < buffer[i]->length + offsetX; j++) {
+        for(int j = offsetX; j < E.width + offsetX; j++) {
             if(j >= buffer[i]->length) break;
             write(STDOUT_FILENO, &((buffer[i]->data)[j]), 1);
         }
@@ -266,6 +273,7 @@ void renderScreen() {
     write(STDOUT_FILENO, "\x1b[H", 3);
     placeCursor();
 }
+
 /*** init ***/
 
 void initEditor() {
