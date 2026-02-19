@@ -258,11 +258,9 @@ void initEditor() {
 
     buffer = malloc(E.height * sizeof(dString*));
     for(int i = 0; i < E.height; i++) {
-        // dString line;
-        // dStringInit(&line);
-        // buffer[i] = &line;
-
-        buffer[i] = malloc(sizeof(dString));
+        dString* newLine = malloc(sizeof(dString));
+        if(newLine == NULL) die("malloc failed at allocating newLines in initEditor");
+        buffer[i] = newLine;
         dStringInit(buffer[i]);
     }
 }
