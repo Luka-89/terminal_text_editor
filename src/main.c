@@ -85,10 +85,15 @@ void dStringShrink(dString* str) {
 
 //0-indexed
 void dStringInsertAt(dString* str, char c, int pos) {
-    if(pos < 0 || pos > str->length) {
+    if(pos < 0) {
         dStringFree(str);
         die("dStringInsertAt called for illegal index");
     }
+    
+    while(str->length < pos) {
+        dStringPush(str, ' ');
+    }
+
     if(str->length == str->maxLength) dStringExtend(str);
     if(pos == str->length) {
         str->data[str->length] = c;
@@ -103,10 +108,7 @@ void dStringInsertAt(dString* str, char c, int pos) {
 }
 
 void dStringDeleteAt(dString* str, int pos) {
-    if(pos < 0 || pos >= str->length) {
-        dStringFree(str);
-        die("dStringDeleteAt called out of bounds");
-    }
+    if(pos < 0 || pos >= str->length) return;
     for(int i = pos; i < str->length - 1; i++) {
         str->data[i] = str->data[i + 1];
     }
