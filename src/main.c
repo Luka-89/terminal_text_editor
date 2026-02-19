@@ -73,6 +73,17 @@ void dStringExtend(dString* str) {
 }
 
 //0-indexed
+void dStringShrink(dString* str) {
+    char* new = (char*) realloc(str->data, (str->maxLength / 2) * sizeof(char));
+    if(new == NULL) {
+        dStringFree(str);
+        die("realloc failed at dStringShrink");
+    }
+    str->data = new;
+    str->maxLength /= 2;
+}
+
+//0-indexed
 void dStringInsertAt(dString* str, char c, int pos) {
     if(pos < 0 || pos >= str->length) {
         dStringFree(str);
@@ -84,6 +95,18 @@ void dStringInsertAt(dString* str, char c, int pos) {
     }
     str->data[pos] = c;
     str->length++;
+}
+
+void dStringDeleteAt(dString* str, int pos) {
+    if(pos < 0 || pos >= str->length) {
+        dStringFree(str);
+        die("dStringDeleteAt called out of bounds");
+    }
+    for(int i = pos; i < str->length - 1; i++) {
+        str->data[i] = str->data[i + 1];
+    }
+    str->length--;
+    if(str->length < str->maxLength / 4) dStringShrink(str);
 }
 
 
