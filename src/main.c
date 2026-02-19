@@ -243,14 +243,22 @@ void editorRefreshScreen() {
 
 
 void placeCursor() {
-    for(int i = 0; i < E.y; i++) write(STDOUT_FILENO, "\x1b[1B", 4);
-    for(int i = 0; i < E.x; i++) write(STDOUT_FILENO, "\x1b[1C", 4);
+    int offsetY = (E.y >= E.height) ? E.y - E.height + 1 : 0;
+    int offsetX = (E.x >= E.width) ? E.x - E.width + 1 : 0;
+    for(int i = 0; i < E.y - offsetY; i++) write(STDOUT_FILENO, "\x1b[1B", 4);
+    for(int i = 0; i < E.x - offsetX; i++) write(STDOUT_FILENO, "\x1b[1C", 4);
 }
 
 void renderScreen() {
+    //TO DO: make screen size dynamic
+    int offsetY = (E.y >= E.height) ? E.y - E.height + 1 : 0;
+    int offsetX = (E.x >= E.width) ? E.x - E.width + 1 : 0;
+
     write(STDOUT_FILENO, "\x1b[H", 3);
-    for(int i = 0; i < E.height - 1; i++) {
-        for(int j = 0; j < buffer[i]->length; j++) {
+    for(int i = offsetY; i < E.height - 1 + offsetY; i++) {
+        //TO DO: insert new lines if i is bigger than buffer length
+        for(int j = offsetX; j < buffer[i]->length + offsetX; j++) {
+            if(j >= buffer[i]->length) break;
             write(STDOUT_FILENO, &((buffer[i]->data)[j]), 1);
         }
         write(STDOUT_FILENO, "\r\n", 2);
