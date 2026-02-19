@@ -85,11 +85,16 @@ void dStringShrink(dString* str) {
 
 //0-indexed
 void dStringInsertAt(dString* str, char c, int pos) {
-    if(pos < 0 || pos >= str->length) {
+    if(pos < 0 || pos > str->length) {
         dStringFree(str);
         die("dStringInsertAt called for illegal index");
     }
     if(str->length == str->maxLength) dStringExtend(str);
+    if(pos == str->length) {
+        str->data[str->length] = c;
+        str->length++;
+        return;
+    }
     for(int i = str->length; i > pos; i--) {
         str->data[i] = str->data[i - 1];
     }
@@ -180,8 +185,10 @@ void processKeypress() {
 
     //backspace
     case 127:
-        // TO DO
-        //need to implement pop first
+        if(E.x > 0) {
+            dStringDeleteAt(buffer[E.y], E.x - 1);
+            E.x--;
+        }
         break;
 
     //arrow keys
@@ -194,24 +201,27 @@ void processKeypress() {
         if(c1 != '[') break;
         switch(c2){
         case 'A':
-            write(STDOUT_FILENO, "\x1b[1A", 4);
+            E.y--;
+            // write(STDOUT_FILENO, "\x1b[1A", 4);
             break;
         case 'B':
-            write(STDOUT_FILENO, "\x1b[1B", 4);
+            E.y++;
+            // write(STDOUT_FILENO, "\x1b[1B", 4);
             break;
         case 'C':
-            write(STDOUT_FILENO, "\x1b[1C", 4);
+            E.x++;
+            // write(STDOUT_FILENO, "\x1b[1C", 4);
             break;
         case 'D':
-            write(STDOUT_FILENO, "\x1b[1D", 4);
+            E.x--;
+            // write(STDOUT_FILENO, "\x1b[1D", 4);
             break;
         }
-        //to be implemented with buffer
         break;
 
     default:
-        //TO DO: make it work by inserting and not pushing to the end
-        dStringPush(buffer[E.y], c);
+        if(c < 32) break;
+        dStringInsertAt(buffer[E.y], c, E.x);
         E.x++;
         break;
     }
