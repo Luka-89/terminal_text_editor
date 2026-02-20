@@ -40,6 +40,8 @@ void renderScreen();
 struct editorConfig E;
 
 dString** buffer;
+int bufferLength;
+int bufferMaxLength;
 
 /*** buffer ***/
 
@@ -118,6 +120,56 @@ void dStringDeleteAt(dString* str, int pos) {
     if(str->length < str->maxLength / 4) dStringShrink(str);
 }
 
+void bufferExtend() {
+    dString** new = realloc(buffer, 2 * bufferMaxLength * sizeof(dString*));
+    if(new == NULL) die("malloc died at bufferExtend");
+    buffer = new;
+    bufferMaxLength *= 2;
+}
+
+void bufferShrink() {
+    dString** new = realloc(&buffer, (bufferMaxLength / 2) * sizeof(dString*));
+    if(new == NULL) die("malloc died at bufferShrink");
+    buffer = new;
+    bufferMaxLength /= 2;
+}
+
+void bufferPush(dString* line) {
+    if(bufferLength == bufferMaxLength) bufferExtend();
+    buffer[bufferLength] = line;
+    bufferLength++;
+}
+
+void bufferInsertAt(dString* line, int pos) {
+    if(pos < 0) die("bufferInsertAt called for negative index");
+
+    while(pos > bufferLength) {
+        dString* newLine = malloc(sizeof(dString));
+        dStringInit(newLine);
+        bufferInsertAt(newLine, bufferLength);
+    }
+
+    if(bufferLength == bufferMaxLength) bufferExtend();
+    
+    for(int i = bufferLength; i > pos; i--) {
+        buffer[i] = buffer[i - 1];
+    }
+
+    buffer[pos] = line;
+    bufferLength++;
+}
+
+void bufferDeleteAt(int pos) {
+    if(pos < 0) die("bufferDeleteAt called for negative index");
+    if(pos >= bufferLength) return;
+    for(int i = pos; i < bufferLength; i++) {
+        buffer[i] = buffer[i + 1];
+    }
+    bufferLength--;
+
+    if(bufferLength < bufferMaxLength / 4) bufferShrink();
+}
+
 
 /*** terminal ***/
 
@@ -174,31 +226,41 @@ void getTerminalSizeIOCTL(int* width, int* height) {
 void processKeypress() {
     char c = readKey();
     switch (c) {
+    
     //ctrl q
-    case 17:
+    case 17: {
         editorRefreshScreen();
         exit(0);
         break;
         
+    }
     //enter
-    case 13:
+    case 13: {
+        //TO DO: break away the rest of the line to the next line when pressed instead of just making an empty line
         E.y++;
-        //TO DO - insert new line here
         E.x = 0;
+        dString* newLine = malloc(sizeof(dString));
+        dStringInit(newLine);
+        bufferInsertAt(newLine, E.y);
+        
         break;
+    }
 
     //backspace
-    case 127:
+    case 127: {
+        //TO DO: delete a line when its pressed at E.x = 0
         if(E.x > 0) {
             dStringDeleteAt(buffer[E.y], E.x - 1);
             E.x--;
         }
         break;
+    }
 
     //arrow keys
     //up - \x1b[A    down - \x1b[B
     //right - \x1b[C left - \x1b[D:
-    case '\x1b':
+    case '\x1b': {
+        // TO DO: move the x cursor position when entering new lines
         char c1; if(read(STDIN_FILENO, &c1, 1) != 1) die("read in processKeypress escape sequences");
         char c2; if(read(STDIN_FILENO, &c2, 1) != 1) die("read in processKeypress escape sequences");
 
@@ -222,12 +284,19 @@ void processKeypress() {
             break;
         }
         break;
+    }
 
-    default:
+    default: 
+        {
         if(c < 32) break;
+
+        dString* newLine = malloc(sizeof(dString));
+        dStringInit(newLine);
+        if(E.y >= bufferLength) bufferInsertAt(newLine, E.y);
         dStringInsertAt(buffer[E.y], c, E.x);
         E.x++;
         break;
+        }
     }
 }
 
@@ -253,17 +322,17 @@ void placeCursor() {
 
 void renderScreen() {
     getTerminalSizeIOCTL(&E.width, &E.height);
-    int offsetY = (E.y >= E.height) ? E.y - E.height + 1 : 0;
+    int offsetY = (E.y >= E.height) ? E.y - E.height + 1: 0;
     int offsetX = (E.x >= E.width) ? E.x - E.width + 1 : 0;
 
     write(STDOUT_FILENO, "\x1b[H", 3);
-    for(int i = offsetY; i < E.height - 1 + offsetY; i++) {
-        //TO DO: insert new lines if i is bigger than buffer length
+    for(int i = offsetY; i < E.height + offsetY; i++) {
+        if(i >= bufferLength) break;
         for(int j = offsetX; j < E.width + offsetX; j++) {
             if(j >= buffer[i]->length) break;
             write(STDOUT_FILENO, &((buffer[i]->data)[j]), 1);
         }
-        write(STDOUT_FILENO, "\r\n", 2);
+        if(i < E.height + offsetY - 1)write(STDOUT_FILENO, "\r\n", 2);
     }
     write(STDOUT_FILENO, "\x1b[H", 3);
     placeCursor();
@@ -276,15 +345,18 @@ void initEditor() {
     getTerminalSizeIOCTL(&E.width, &E.height);
     E.x = 0;
     E.y = 0;
+    bufferLength = 0;
+    bufferMaxLength = 128;
     for(int i = 0; i < E.height; i++) write(STDOUT_FILENO, "\r\n", 2);
     write(STDOUT_FILENO, "\x1b[H", 3);
 
-    buffer = malloc(E.height * sizeof(dString*));
+    buffer = malloc(bufferMaxLength * sizeof(dString*));
     for(int i = 0; i < E.height; i++) {
         dString* newLine = malloc(sizeof(dString));
         if(newLine == NULL) die("malloc failed at allocating newLines in initEditor");
         buffer[i] = newLine;
         dStringInit(buffer[i]);
+        bufferLength++;
     }
 }
 
