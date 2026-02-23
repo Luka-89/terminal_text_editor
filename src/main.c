@@ -280,7 +280,7 @@ void processKeypress() {
         if(c1 != '[') break;
         switch(c2){
         case 'A':
-            E.y--;
+            if(E.y > 0)E.y--;
             // write(STDOUT_FILENO, "\x1b[1A", 4);
             break;
         case 'B':
@@ -293,7 +293,11 @@ void processKeypress() {
             break;
         case 'D':
             //TO DO: move cursor to the end of previous line if at E.x == 0
-            E.x--;
+            if(E.x > 0) E.x--;
+            else if(E.x <= 0 && E.y > 0) {
+                E.y--;
+                E.x = buffer[E.y]->length;
+            }
             // write(STDOUT_FILENO, "\x1b[1D", 4);
             break;
         }
