@@ -38,6 +38,8 @@ void placeCursor();
 void renderScreen();
 void hideCursor();
 void showCursor();
+void setUnderscoreCursor();
+void resetCursor();
 
 struct editorConfig E;
 
@@ -257,7 +259,7 @@ void processKeypress() {
 
     //backspace
     case 127: {
-        if(E.x > 0) {
+        if(E.x > 0 && E.y < bufferLength) {
             dStringDeleteAt(buffer[E.y], E.x - 1); //DeletAt wont do anything if its out of bounds
             E.x--;
         }
@@ -357,13 +359,20 @@ void renderScreen() {
 }
 
 void hideCursor() {
-    printf("\x1b[?25l");
+    write(STDOUT_FILENO, "\x1b[?25l", 6);
     fflush(stdout);
 }
 
 void showCursor() {
-    printf("\x1b[?25h");
-    fflush(stdout);
+    write(STDOUT_FILENO, "\x1b[?25h", 6);
+}
+
+void setUnderscoreCursor() {
+    write(STDOUT_FILENO, "\033[3 q", 6);
+}
+
+void resetCursor() {
+    write(STDOUT_FILENO, "\033[0 q", 5);
 }
 
 /*** init ***/
@@ -373,6 +382,10 @@ void initEditor() {
     getTerminalSizeIOCTL(&E.width, &E.height);
     E.x = 0;
     E.y = 0;
+
+    setUnderscoreCursor();
+    atexit(resetCursor);
+
     bufferLength = 0;
     bufferMaxLength = 128;
     for(int i = 0; i < E.height; i++) write(STDOUT_FILENO, "\r\n", 2);
@@ -386,6 +399,7 @@ void initEditor() {
         dStringInit(buffer[i]);
         bufferLength++;
     }
+    
 }
 
 int main() {
