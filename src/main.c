@@ -239,21 +239,26 @@ void processKeypress() {
     }
     //enter
     case 13: {
-        //TO DO: break away the rest of the line to the next line when pressed instead of just making an empty line
-        E.y++;
-        E.x = 0;
         dString* newLine = malloc(sizeof(dString));
         dStringInit(newLine);
-        bufferInsertAt(newLine, E.y);
+        if(E.y < bufferLength && E.x < buffer[E.y]->length) {
+            for(int i = E.x; i < buffer[E.y]->length; i++) {
+                dStringPush(newLine, (buffer[E.y]->data)[i]);
+            }
+            buffer[E.y]->length = E.x;
+        }
         
+        E.y++;
+        E.x = 0;
+        
+        bufferInsertAt(newLine, E.y);
         break;
     }
 
     //backspace
     case 127: {
-        //TO DO: delete a line when its pressed at E.x = 0
         if(E.x > 0) {
-            dStringDeleteAt(buffer[E.y], E.x - 1);
+            dStringDeleteAt(buffer[E.y], E.x - 1); //DeletAt wont do anything if its out of bounds
             E.x--;
         }
         else if(E.y > 0 && E.y < bufferLength){
@@ -287,6 +292,7 @@ void processKeypress() {
             // write(STDOUT_FILENO, "\x1b[1C", 4);
             break;
         case 'D':
+            //TO DO: move cursor to the end of previous line if at E.x == 0
             E.x--;
             // write(STDOUT_FILENO, "\x1b[1D", 4);
             break;
