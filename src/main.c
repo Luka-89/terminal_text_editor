@@ -130,7 +130,7 @@ void bufferExtend() {
 }
 
 void bufferShrink() {
-    dString** new = realloc(&buffer, (bufferMaxLength / 2) * sizeof(dString*));
+    dString** new = realloc(buffer, (bufferMaxLength / 2) * sizeof(dString*));
     if(new == NULL) die("malloc died at bufferShrink");
     buffer = new;
     bufferMaxLength /= 2;
@@ -164,6 +164,7 @@ void bufferInsertAt(dString* line, int pos) {
 void bufferDeleteAt(int pos) {
     if(pos < 0) die("bufferDeleteAt called for negative index");
     if(pos >= bufferLength) return;
+    dStringFree(buffer[pos]);
     for(int i = pos; i < bufferLength; i++) {
         buffer[i] = buffer[i + 1];
     }
@@ -254,6 +255,11 @@ void processKeypress() {
         if(E.x > 0) {
             dStringDeleteAt(buffer[E.y], E.x - 1);
             E.x--;
+        }
+        else if(E.y > 0 && E.y < bufferLength){
+            bufferDeleteAt(E.y);
+            E.y--;
+            E.x = buffer[E.y]->length;
         }
         break;
     }
