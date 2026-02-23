@@ -36,6 +36,8 @@ void dStringInsertAt(dString* str, char c, int pos);
 void dStringDeleteAt(dString* str, int pos);
 void placeCursor();
 void renderScreen();
+void hideCursor();
+void showCursor();
 
 struct editorConfig E;
 
@@ -338,6 +340,16 @@ void renderScreen() {
     placeCursor();
 }
 
+void hideCursor() {
+    printf("\x1b[?25l");
+    fflush(stdout);
+}
+
+void showCursor() {
+    printf("\x1b[?25h");
+    fflush(stdout);
+}
+
 /*** init ***/
 
 void initEditor() {
@@ -365,10 +377,10 @@ int main() {
     
     while(1) {
         processKeypress();
-        //TO DO function that turns off cursor visibility
+        hideCursor();
         editorRefreshScreen();
         renderScreen();
-        //TO DO function that turns on cursor visibility
+        showCursor();
     }
 
     editorRefreshScreen();
