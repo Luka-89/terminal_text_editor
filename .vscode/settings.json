@@ -8,7 +8,7 @@
                 "name": "$(tools) $(triangle-right) Build and Run",
                 "color": "lime",
                 "singleInstance": true,
-                "command": "bash build.sh"
+                "command": "bash scripts/buildAndRun.sh"
             }
         ]
     }

@@ -1,0 +1,4 @@
+1. make a script for adding program into path
+2. make a script for removing program from path
+3. add -help flag for 
+4. add reading and writing into a file
