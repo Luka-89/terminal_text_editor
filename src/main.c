@@ -38,7 +38,7 @@ void placeCursor();
 void renderScreen();
 void hideCursor();
 void showCursor();
-void setUnderscoreCursor();
+void setBarCursor();
 void resetCursor();
 
 struct editorConfig E;
@@ -263,7 +263,7 @@ void processKeypress() {
             dStringDeleteAt(buffer[E.y], E.x - 1); //DeletAt wont do anything if its out of bounds
             E.x--;
         }
-        else if(E.y > 0 && E.y < bufferLength){
+        else if(E.y > 0 && E.y < bufferLength && buffer[E.y]->length == 0){
             bufferDeleteAt(E.y);
             E.y--;
             E.x = buffer[E.y]->length;
@@ -367,8 +367,8 @@ void showCursor() {
     write(STDOUT_FILENO, "\x1b[?25h", 6);
 }
 
-void setUnderscoreCursor() {
-    write(STDOUT_FILENO, "\033[3 q", 6);
+void setBarCursor() {
+    write(STDOUT_FILENO, "\033[5 q", 6);
 }
 
 void resetCursor() {
@@ -383,7 +383,7 @@ void initEditor() {
     E.x = 0;
     E.y = 0;
 
-    setUnderscoreCursor();
+    setBarCursor();
     atexit(resetCursor);
 
     bufferLength = 0;
