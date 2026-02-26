@@ -9,4 +9,5 @@ then
 else
     echo "export TTE_DIR=\"$TTE_DIR\"" >> ~/.bashrc
     echo 'export PATH="$PATH:$TTE_DIR/bin"' >> ~/.bashrc
+    source ~/.bashrc
 fi
