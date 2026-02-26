@@ -34,6 +34,7 @@ void dStringExtend(dString* str);
 void dStringShrink(dString* str);
 void dStringInsertAt(dString* str, char c, int pos);
 void dStringDeleteAt(dString* str, int pos);
+size_t strlen(char* str);
 void placeCursor();
 void renderScreen();
 void hideCursor();
@@ -175,6 +176,14 @@ void bufferDeleteAt(int pos) {
     if(bufferLength < bufferMaxLength / 4) bufferShrink();
 }
 
+size_t strlen(char* str) {
+    int length = 0;
+    while(1) {
+        if(*str == '\0') return length;
+        length++;
+        str++;
+    }
+}
 
 /*** terminal ***/
 
@@ -402,9 +411,11 @@ void initEditor() {
     
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     initEditor();
     
+    char* fileName = argv[1];
+
     while(1) {
         processKeypress();
         hideCursor();

@@ -9,6 +9,12 @@
                 "color": "lime",
                 "singleInstance": true,
                 "command": "bash scripts/buildAndRun.sh"
+            },
+            {
+                "name": "$(tools)Build ",
+                "color": "lime",
+                "singleInstance": true,
+                "command": "bash scripts/build.sh"
             }
         ]
     }
