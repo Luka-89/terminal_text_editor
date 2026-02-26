@@ -3,6 +3,7 @@
 SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 TTE_DIR="$(cd $SCRIPTS_DIR && cd .. && pwd)"
 
+mkdir -p "$TTE_DIR/bin"
 gcc "$TTE_DIR/src/main.c" -o "$TTE_DIR/bin/main"
 if [ $? -gt 0 ]; 
 then 
