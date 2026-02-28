@@ -241,6 +241,8 @@ void processKeypress() {
     char c = readKey();
     switch (c) {
     
+    //TO DO: check for tab
+
     //ctrl q
     case 17: {
         editorRefreshScreen();
@@ -384,6 +386,38 @@ void resetCursor() {
     write(STDOUT_FILENO, "\033[0 q", 5);
 }
 
+/*** file ***/
+void fileToBuffer(char* filename) {
+    FILE* stream = fopen(filename, "r");
+    int c;
+    dString* line = malloc(sizeof(dString));
+    dStringInit(line);
+
+    while((c = fgetc(stream)) != EOF) {
+        if(c == '\n') {
+            bufferPush(line);
+            line = malloc(sizeof(dString));
+            dStringInit(line);
+            E.x = 0;
+            E.y++;
+        }
+        else if(c == '\t') {
+            dStringPush(line, ' ');
+            dStringPush(line, ' ');
+            dStringPush(line, ' ');
+            dStringPush(line, ' ');
+            E.x += 4;
+        }
+
+        else {
+            dStringPush(line, c);
+            E.x++;
+        }
+    }
+    bufferPush(line);
+    fclose(stream);
+}
+
 /*** init ***/
 
 void initEditor() {
@@ -401,27 +435,20 @@ void initEditor() {
     write(STDOUT_FILENO, "\x1b[H", 3);
 
     buffer = malloc(bufferMaxLength * sizeof(dString*));
-    for(int i = 0; i < E.height; i++) {
-        dString* newLine = malloc(sizeof(dString));
-        if(newLine == NULL) die("malloc failed at allocating newLines in initEditor");
-        buffer[i] = newLine;
-        dStringInit(buffer[i]);
-        bufferLength++;
-    }
-    
 }
 
 int main(int argc, char* argv[]) {
     initEditor();
     
     char* fileName = argv[1];
+    fileToBuffer(fileName);
 
     while(1) {
-        processKeypress();
         hideCursor();
         editorRefreshScreen();
         renderScreen();
         showCursor();
+        processKeypress();
     }
 
     editorRefreshScreen();
