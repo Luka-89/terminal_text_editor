@@ -12,6 +12,3 @@
                 "command": "bash build.sh"
             }
 
-        ]
-    }
-}

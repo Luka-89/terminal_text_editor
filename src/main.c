@@ -259,6 +259,7 @@ void processKeypress() {
         break;
         
     }
+
     //enter
     case 13: {
         dString* newLine = malloc(sizeof(dString));
@@ -274,6 +275,22 @@ void processKeypress() {
         E.x = 0;
         
         bufferInsertAt(newLine, E.y);
+        break;
+    }
+
+    //ctrl S
+    case 19: {
+        bufferToFile();
+        break;
+    }
+
+    //tab
+    case '\t': {
+        dStringInsertAt(buffer[E.y], ' ', E.x);
+        dStringInsertAt(buffer[E.y], ' ', E.x);
+        dStringInsertAt(buffer[E.y], ' ', E.x);
+        dStringInsertAt(buffer[E.y], ' ', E.x);
+        E.x += 4;
         break;
     }
 
@@ -460,6 +477,7 @@ void initEditor() {
 int main(int argc, char* argv[]) {
     initEditor();
     
+    //TO DO: check for no such file
     fileName = argv[1];
     fileToBuffer(fileName);
 
