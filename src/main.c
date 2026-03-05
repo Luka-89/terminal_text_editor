@@ -34,6 +34,11 @@ void dStringExtend(dString* str);
 void dStringShrink(dString* str);
 void dStringInsertAt(dString* str, char c, int pos);
 void dStringDeleteAt(dString* str, int pos);
+void bufferExtend();
+void bufferShrink();
+void bufferPush(dString* line);
+void bufferInsertAt(dString* line, int pos);
+void bufferDeleteAt(int pos);
 size_t strlen(char* str);
 void placeCursor();
 void renderScreen();
@@ -41,12 +46,16 @@ void hideCursor();
 void showCursor();
 void setBarCursor();
 void resetCursor();
+void fileToBuffer();
+void bufferToFile();
 
 struct editorConfig E;
 
 dString** buffer;
 int bufferLength;
 int bufferMaxLength;
+
+char* fileName;
 
 /*** buffer ***/
 
@@ -387,8 +396,8 @@ void resetCursor() {
 }
 
 /*** file ***/
-void fileToBuffer(char* filename) {
-    FILE* stream = fopen(filename, "r");
+void fileToBuffer() {
+    FILE* stream = fopen(fileName, "r");
     int c;
     dString* line = malloc(sizeof(dString));
     dStringInit(line);
@@ -418,6 +427,17 @@ void fileToBuffer(char* filename) {
     fclose(stream);
 }
 
+void bufferToFile() {
+    FILE* stream = fopen(fileName, "w");
+    for(int i = 0; i < bufferLength; i++) {
+        for(int j = 0; j < buffer[i]->length; j++) {
+            fputc((buffer[i])->data[j], stream);
+        }
+        if(i != bufferLength -1)fputc('\n', stream);
+    }
+    fclose(stream);
+}
+
 /*** init ***/
 
 void initEditor() {
@@ -440,7 +460,7 @@ void initEditor() {
 int main(int argc, char* argv[]) {
     initEditor();
     
-    char* fileName = argv[1];
+    fileName = argv[1];
     fileToBuffer(fileName);
 
     while(1) {
@@ -450,6 +470,7 @@ int main(int argc, char* argv[]) {
         showCursor();
         processKeypress();
     }
+    
 
     editorRefreshScreen();
     return 0;
