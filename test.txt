@@ -9,6 +9,4 @@
                 "name": "$(tools) Build",
                 "color": "lime",
                 "singleInstance": true,
-                "command": "bash build.sh"
-            }
-
+                "command": "bash build.s
